@@ -81,7 +81,7 @@ class Box:
         # symmetry
         cltag_wings = []
         for i in range(len(wings)):
-            cltag_wings.append(gmsh.model.geo.add_curve_loop([wings[i].tags['airfoil_curves'][0][0], wings[i].tags['airfoil_curves'][0][1]]))
+            cltag_wings.append(gmsh.model.geo.add_curve_loop(wings[i].tags['symmetry_curves']))
         cltag = gmsh.model.geo.add_curve_loop(list(reversed(oxz_ctags[0])))
         stags.append(gmsh.model.geo.add_plane_surface([-cltag] + cltag_wings))
         # upstream
@@ -176,7 +176,7 @@ class Sphere:
         # symmetry
         cltag_wings = []
         for i in range(len(wings)):
-            cltag_wings.append(gmsh.model.geo.add_curve_loop([wings[i].tags['airfoil_curves'][0][0], wings[i].tags['airfoil_curves'][0][1]]))
+            cltag_wings.append(gmsh.model.geo.add_curve_loop(wings[i].tags['symmetry_curves']))
         cltag = gmsh.model.geo.add_curve_loop(list(reversed(ctags[0])))
         stags.append(gmsh.model.geo.add_plane_surface([-cltag] + cltag_wings))
         # farfield
@@ -186,16 +186,25 @@ class Sphere:
 
         # Add volume
         wing_tags = []
+        tag_name = 'boundary_layer_top' if cfg['type'] == 'rans' else 'wing'
         for w in wings:
-            wing_tags.extend(w.tags['wing_surfaces'])
+            wing_tags.extend(w.tags[tag_name + '_surfaces'])
         sltag = gmsh.model.geo.add_surface_loop(stags + wing_tags)
         vtag = gmsh.model.geo.add_volume([sltag])
 
         # Add physical groups
         gmsh.model.geo.synchronize()
-        gmsh.model.add_physical_group(2, [stags[0]], name='symmetry')
+        sym_stags = [stags[0]]
+        if cfg['type'] == 'rans':
+            for w in wings:
+                sym_stags.extend(w.tags['boundary_layer_symmetry_surfaces'])
+        vtags = [vtag]
+        if cfg['type'] == 'rans':
+            for w in wings:
+                vtags.extend(w.tags['boundary_layer_volume'])
+        gmsh.model.add_physical_group(2, sym_stags, name='symmetry')
         gmsh.model.add_physical_group(2, stags[1:], name='farfield')
-        gmsh.model.add_physical_group(3, [vtag], name='field')
+        gmsh.model.add_physical_group(3, vtags, name='field')
 
         # Add meshing constraints
         for i in range(len(ptags)):

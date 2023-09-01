@@ -18,11 +18,10 @@ from .wing import Wing
 from .domain import Box, Sphere
 import gmsh
 
-# TODOLIST:
-# Check installed version + logger
-# Add full support for blunt TE
-# Add support for BL
-# Refactoring: check/split method? call from driver instead of constructor?
+# TODOLIST
+# - use transfinite or Field to improve/refine RANS meshes
+# - use circle at wingtip LE, then make tangent?
+# - refactor (split method? call from driver instead of constructor? static methods instead of class?)
 
 class GmshCFD:
     """Main driver
@@ -64,7 +63,7 @@ class GmshCFD:
         # Get log and stop Gmsh
         log_msgs = gmsh.logger.get()
         gmsh.logger.stop()
-        file = open('log', 'a')
+        file = open(f'log_{self.__name}', 'w')
         for m in log_msgs:
             file.write(m + '\n')
         file.close()
@@ -84,15 +83,21 @@ class GmshCFD:
         # Synchronize model
         gmsh.model.geo.synchronize()
 
-    def generate_mesh(self):
+    def generate_mesh(self, algo_2d='delaunay', algo_3d='hxt'):
         """Generate mesh
         """
-        gmsh.option.set_number('Mesh.Algorithm', 5) # Delaunay
-        gmsh.option.set_number('Mesh.Algorithm3D', 1) # Delaunay
+        algos_2d = {'delaunay': 5, 'frontal-delaunay': 6}
+        algos_3d = {'delaunay': 1, 'hxt': 10}
+        gmsh.option.set_number('Mesh.Algorithm', algos_2d[algo_2d])
+        gmsh.option.set_number('Mesh.Algorithm3D', algos_3d[algo_3d])
         gmsh.option.set_number('Mesh.Optimize', 1)
         gmsh.option.set_number('Mesh.Smoothing', 10)
         gmsh.option.set_number('Mesh.SmoothNormals', 1)
-        gmsh.model.mesh.generate(3)
+        try:
+            gmsh.model.mesh.generate(3)
+        except Exception as e:
+            gmsh.write(self.__name + '.msh')
+            raise Exception(e)
 
     def write_geometry(self):
         """Save geometry to disk and rename using .geo

@@ -50,12 +50,19 @@ def build_cfg():
             }
         },
         'domain': {
-            'type': 'euler',
+            'type': 'rans',
             'length': 50 * chords[0]
         },
         'mesh': {
             'wing_sizes': {
                 'wing': [[s, s] for s in sizes]
+            },
+            'boundary_layer': {
+                'wing': {
+                    'num_layer': 30,
+                    'growth_ratio': 1.2,
+                    'thck_first_layer': 2e-6
+                }
             },
             'domain_size': ff_size
         }
@@ -70,8 +77,7 @@ def main():
     # Generate mesh
     cfd.generate_mesh()
 
-    # Write geometry and mesh
-    cfd.write_geometry()
+    # Write mesh (write geometry not supported for extruded boundary layer)
     cfd.write_mesh('msh2')
 
     # eof

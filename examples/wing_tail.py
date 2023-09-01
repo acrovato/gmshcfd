@@ -29,9 +29,9 @@ def build_cfg():
     wle_coords, wchords = gmshcfd.utils.compute_wing_cfg([0.5, 3.0], [0.82, 0.35], [20., 20.], [1., 3.], 1.0)
     tle_coords, tchords = gmshcfd.utils.compute_wing_cfg([1.0], [0.3], [25.], [2.], 0.5)
     # Compute mesh sizes
-    wsizes = [c / 50 for c in wchords]
-    tsizes = [c / 50 for c in tchords]
-    ff_size = gmshcfd.utils.compute_ff_mesh_size(wsizes[0], 20 * wchords[0], 1.2)
+    wsizes = [c / 100 for c in wchords]
+    tsizes = [c / 100 for c in tchords]
+    ff_size = gmshcfd.utils.compute_ff_mesh_size(wsizes[0], 50 * wchords[0], 1.2)
     # Build cfg
     cfg = {
         'wings': {
@@ -51,8 +51,8 @@ def build_cfg():
             }
         },
         'domain': {
-            'type': 'potential',
-            'length': 20 * wchords[0]
+            'type': 'euler',
+            'length': 50 * wchords[0]
         },
         'mesh': {
             'wing_sizes': {

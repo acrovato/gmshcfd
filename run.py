@@ -18,38 +18,6 @@
 
 # Run a script as if the software was installed
 
-class DupStream:
-    """Duplicate stream
-    """
-    def __init__(self, stream1, stream2):
-        self.stream1 = stream1
-        self.stream2 = stream2
-
-    def write(self, data):
-        self.stream1.write(data)
-        self.stream2.write(data)
-
-    def flush(self):
-        self.stream1.flush()
-        self.stream2.flush()
-
-class Tee:
-    """Redirect standard output and error to console and file
-    """
-    def __init__(self, name):
-        import sys
-        self.file = open(name, 'w')
-        self.stdoutbak = sys.stdout
-        self.stderrbak = sys.stderr
-        sys.stdout = DupStream(sys.stdout, self.file)
-        sys.stderr = DupStream(sys.stderr, self.file)
-
-    def __del__(self):
-        import sys
-        sys.stdout = self.stdoutbak
-        sys.stderr = self.stderrbak
-        self.file.close()
-
 def parse_args():
     """Parse command line arguments
     """
@@ -101,8 +69,7 @@ def main():
         raise Exception(f'File not found: {testname}')
     setup_workdir(testname, args.clean)
 
-    # create log and run
-    tee = Tee('log') # split streams
+    # Run
     print('Starting test', testname)
     print('Time:', time.strftime('%c'))
     print('Hostname:', socket.gethostname())
