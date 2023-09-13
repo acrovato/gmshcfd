@@ -36,16 +36,16 @@ def build_cfg():
     cfg = {
         'wings': {
             'wing': {
-                'le_offset': [0., 0.],
-                'le_coords': wle_coords,
-                'coordinates': airf_path[0],
+                'offset': [0., 0.],
+                'le_offsets': wle_coords,
+                'airfoils': airf_path[0],
                 'chords': wchords,
                 'incidences': [2., 1., -1.]
             },
             'tail': {
-                'le_offset': [4., 0.5],
-                'le_coords': tle_coords,
-                'coordinates': airf_path[1],
+                'offset': [4., 0.5],
+                'le_offsets': tle_coords,
+                'airfoils': airf_path[1],
                 'chords': tchords,
                 'incidences': [0., 0.]
             }
@@ -74,7 +74,7 @@ def main():
 
     # Write geometry and mesh
     cfd.write_geometry()
-    cfd.write_mesh('msh2')
+    cfd.write_mesh('msh')
 
     # eof
     print('')

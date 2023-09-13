@@ -34,9 +34,9 @@ def build_cfg():
     cfg = {
         'wings': {
             'wing': {
-                'le_offset': [0., 0.], # x and z offset at the leading edge root
-                'le_coords': le_coords, # x, y and z coordinates of each airfoil's leading edge, relative to offset
-                'coordinates': airf_path, # name of (Selig formatted) files containing airfoil coordinates
+                'offset': [0., 0.], # x and z offset at the leading edge root
+                'le_offsets': le_coords, # x, y and z coordinates of each airfoil's leading edge, relative to offset
+                'airfoils': airf_path, # name of (Selig formatted) files containing airfoil coordinates
                 'chords': chords, # chord of each airfoil
                 'incidences': [0., 0.] # incidence angle of each airfoil
             }

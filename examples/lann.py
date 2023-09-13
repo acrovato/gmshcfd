@@ -42,9 +42,9 @@ def build_cfg():
     cfg = {
         'wings': {
             'wing': {
-                'le_offset': [0., 0.],
-                'le_coords': le_coords,
-                'coordinates': airf_path,
+                'offset': [0., 0.],
+                'le_offsets': le_coords,
+                'airfoils': airf_path,
                 'chords': chords,
                 'incidences': [0. for _ in chords]
             }
@@ -61,8 +61,9 @@ def build_cfg():
                 'wing': {
                     'num_layer': 30,
                     'growth_ratio': 1.2,
-                    'thck_first_layer': 2e-6
-                }
+                    'hgt_first_layer': 2e-6
+                },
+                'write_tags': True
             },
             'domain_size': ff_size
         }
@@ -78,7 +79,7 @@ def main():
     cfd.generate_mesh()
 
     # Write mesh (write geometry not supported for extruded boundary layer)
-    cfd.write_mesh('msh2')
+    cfd.write_mesh('msh')
 
     # eof
     print('')

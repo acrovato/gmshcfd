@@ -53,11 +53,11 @@ class Wing:
         """Read airfoil coordinates from files and transform them using wing planform configuration
         """
         # Get number of airfoils
-        n_airf = len(cfg['coordinates'])
+        n_airf = len(cfg['airfoils'])
 
         # Read coordinates
         coords = []
-        for fname in cfg['coordinates']:
+        for fname in cfg['airfoils']:
             coords.append(np.loadtxt(fname, skiprows=1))
         # Find local index of leading edge point
         le_idx = []
@@ -89,10 +89,10 @@ class Wing:
             sin = np.sin(cfg['incidences'][i] * np.pi / 180)
             coords[i] = np.dot(coords[i], np.array([[cos, -sin],[sin, cos]]))
             # Add x and z offset
-            coords[i][:, 0] += cfg['le_coords'][i][0] + cfg['le_offset'][0]
-            coords[i][:, 1] += cfg['le_coords'][i][2] + cfg['le_offset'][1]
+            coords[i][:, 0] += cfg['le_offsets'][i][0] + cfg['offset'][0]
+            coords[i][:, 1] += cfg['le_offsets'][i][2] + cfg['offset'][1]
             # Insert y-coordinates
-            coords[i] = np.hstack((coords[i], cfg['le_coords'][i][1] * np.ones([coords[i].shape[0], 1])))
+            coords[i] = np.hstack((coords[i], cfg['le_offsets'][i][1] * np.ones([coords[i].shape[0], 1])))
             coords[i][:, [1, 2]] = np.fliplr(coords[i][:, [1, 2]])
 
         # Get the trailing edge z_coordinate of the airfoil on the symmetry plane
@@ -260,7 +260,7 @@ class Wing:
             # Extrude surfaces to create boundary layer
             N = mesh_cfg['boundary_layer']['wing']['num_layer'] # number of layers
             r = mesh_cfg['boundary_layer']['wing']['growth_ratio'] # ratio
-            d = [mesh_cfg['boundary_layer']['wing']['thck_first_layer']] # thickness of first layer
+            d = [mesh_cfg['boundary_layer']['wing']['hgt_first_layer']] # heigth of first layer
             for i in range(1, N):
                 d.append(d[-1] + d[0] * r**i)
             bl = gmsh.model.geo.extrudeBoundaryLayer([(2, tag) for tag in stags], [1] * N, d, True)
@@ -286,7 +286,7 @@ class Wing:
         # Add physical groups
         gmsh.model.geo.synchronize()
         gmsh.model.add_physical_group(2, stags, name=name)
-        if domain_cfg['type'] == 'rans':
+        if domain_cfg['type'] == 'rans' and mesh_cfg['boundary_layer']['write_tags']:
             gmsh.model.add_physical_group(2, bl_top_stags, tag=9998, name=name+'BoundaryLayerSurface')
             gmsh.model.add_physical_group(3, bl_vtags, tag=9999, name=name+'BoundaryLayerVolume')
 

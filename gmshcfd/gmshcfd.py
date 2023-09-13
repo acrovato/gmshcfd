@@ -16,12 +16,7 @@
 
 from .wing import Wing
 from .domain import Box, Sphere
-import gmsh
-
-# TODOLIST
-# - use transfinite or Field to improve/refine RANS meshes
-# - use circle at wingtip LE, then make tangent?
-# - refactor (split method? call from driver instead of constructor? static methods instead of class?)
+import gmsh, os
 
 class GmshCFD:
     """Main driver
@@ -93,6 +88,7 @@ class GmshCFD:
         gmsh.option.set_number('Mesh.Optimize', 1)
         gmsh.option.set_number('Mesh.Smoothing', 10)
         gmsh.option.set_number('Mesh.SmoothNormals', 1)
+        gmsh.option.set_number('General.NumThreads', os.cpu_count())
         try:
             gmsh.model.mesh.generate(3)
         except Exception as e:
@@ -102,7 +98,6 @@ class GmshCFD:
     def write_geometry(self):
         """Save geometry to disk and rename using .geo
         """
-        import os
         gmsh.write(self.__name + '.geo_unrolled')
         nname = self.__name + '.geo'
         if os.path.isfile(nname):
