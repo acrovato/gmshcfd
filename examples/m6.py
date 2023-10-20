@@ -27,29 +27,31 @@ def build_cfg():
     # Compute wing leading edge coordinates and chord lengths
     le_coords, chords = gmshcfd.utils.compute_wing_cfg([1.196], [0.56], [30], [0], 0.8059)
     # Compute mesh sizes
-    root_size = chords[0] / 100
-    tip_size = chords[1] / 100
-    ff_size = gmshcfd.utils.compute_ff_mesh_size(root_size, 20 * chords[0], 1.2)
+    sizes = [c / 100 for c in chords]
+    ff_size = gmshcfd.utils.compute_ff_mesh_size(sizes[0], 20 * chords[0], 1.2)
     # Build cfg
     cfg = {
         'wings': {
             'wing': {
-                'offset': [0., 0.], # x and z offset at the leading edge root
-                'le_offsets': le_coords, # x, y and z coordinates of each airfoil's leading edge, relative to offset
-                'airfoils': airf_path, # name of (Selig formatted) files containing airfoil coordinates
-                'chords': chords, # chord of each airfoil
-                'incidences': [0., 0.] # incidence angle of each airfoil
+                'offset': [0., 0.],
+                'le_offsets': le_coords,
+                'airfoils': airf_path,
+                'chords': chords,
+                'incidences': [0., 0.]
             }
         },
         'domain': {
-            'type': 'potential', # nature of equations to be sovled
-            'length': 20 * chords[0] # extent of domain
+            'type': 'potential',
+            'length': 20 * chords[0]
         },
         'mesh': {
             'wing_sizes': {
-                'wing': [[root_size, root_size], [tip_size, tip_size]] # mesh sizes at TE and LE of each airfoil
+                'wing': {
+                    'te': [s for s in sizes],
+                    'le': [s for s in sizes]
+                }
             },
-            'domain_size': ff_size # mesh size at farfield
+            'domain_size': ff_size
         }
     }
     return cfg

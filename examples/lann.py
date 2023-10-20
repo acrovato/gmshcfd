@@ -55,7 +55,15 @@ def build_cfg():
         },
         'mesh': {
             'wing_sizes': {
-                'wing': [[s, s] for s in sizes]
+                'wing': {
+                    'te': [s for s in sizes],
+                    'le': [s for s in sizes]
+                }
+                #'wing': {
+                #    'num_cell_chord': 125,
+                #    'num_cell_span': [50, 30, 40, 40, 40, 30, 10],
+                #    'prog_chord': 0.25
+                #}
             },
             'boundary_layer': {
                 'wing': {

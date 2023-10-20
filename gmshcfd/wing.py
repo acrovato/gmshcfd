@@ -42,12 +42,12 @@ class Wing:
     """
     def __init__(self, name, cfg, domain_cfg, mesh_cfg):
         # Compute airfoil coordinates
-        is_closed, n_airf, coords, le_idx = self.__compute_coordinates(cfg, domain_cfg)
+        is_closed, n_airf, coords, le_idx, tp_idx = self.__compute_coordinates(cfg, domain_cfg)
         # Create Gmsh wing and wake models
         if is_closed:
             self.__create_model_closed(n_airf, coords, le_idx, name, domain_cfg, mesh_cfg)
         else:
-            self.__create_model_open(n_airf, coords, le_idx, name, domain_cfg, mesh_cfg)
+            self.__create_model_open(n_airf, coords, le_idx, tp_idx, name, domain_cfg, mesh_cfg)
 
     def __compute_coordinates(self, cfg, domain_cfg):
         """Read airfoil coordinates from files and transform them using wing planform configuration
@@ -63,6 +63,8 @@ class Wing:
         le_idx = []
         for c in coords:
             le_idx.append(np.argmin(c[:, 0]))
+        # Find local index of c/20 point at tip
+        tp_idx = np.argmin(abs(coords[-1][:, 0] - 0.05))
 
         # Transform airfoil coordinates using chord length, incidence and offset
         for i in range(n_airf):
@@ -98,7 +100,7 @@ class Wing:
         # Get the trailing edge z_coordinate of the airfoil on the symmetry plane
         self.height = coords[0][0, 0]
 
-        return is_closed, n_airf, coords, le_idx
+        return is_closed, n_airf, coords, le_idx, tp_idx
 
     def __create_model_closed(self, n_airf, coords, le_idx, name, domain_cfg, mesh_cfg):
         """Create points, curves and surfaces for wing with sharp trailing edge in Gmsh model
@@ -146,8 +148,8 @@ class Wing:
 
         # Add meshing constraint on TE and LE
         for i in range(n_airf):
-            gmsh.model.mesh.set_size([(0, ptags[i][0])], mesh_cfg['wing_sizes'][name][i][0])
-            gmsh.model.mesh.set_size([(0, ptags[i][le_idx[i]])], mesh_cfg['wing_sizes'][name][i][1])
+            gmsh.model.mesh.set_size([(0, ptags[i][0])], mesh_cfg['wing_sizes'][name]['te'][i])
+            gmsh.model.mesh.set_size([(0, ptags[i][le_idx[i]])], mesh_cfg['wing_sizes'][name]['le'][i])
 
         # Generate tag dictionary
         self.tags = {'symmetry_curves': airf_ctags[0], 'wing_surfaces': stags}
@@ -162,7 +164,7 @@ class Wing:
                 cte_ids.append(plan_ctags[i][0])
             self.wake = Wake(pte_ids, cte_ids, name+'Wake', domain_cfg['length'], mesh_cfg['domain_size'])
 
-    def __create_model_open(self, n_airf, coords, le_idx, name, domain_cfg, mesh_cfg):
+    def __create_model_open(self, n_airf, coords, le_idx, tp_idx, name, domain_cfg, mesh_cfg):
         """Create points, curves and surfaces for wing with blunt trailing edge in Gmsh model
         """
         # Add airfoil points
@@ -186,7 +188,7 @@ class Wing:
             # Tip
             tip_ptags = []
             for i in range(1, 10):
-                idx = le_idx[-1] * i // 10
+                idx = tp_idx * i // 9
                 xc = 0.5 * (coords[-1][idx, 0] + coords[-1][-idx-1, 0])
                 zc = 0.5 * (coords[-1][idx, 2] + coords[-1][-idx-1, 2])
                 yc = coords[-1][idx, 1] + 0.5 * abs(coords[-1][idx, 2] - coords[-1][-idx-1, 2])
@@ -290,14 +292,41 @@ class Wing:
             gmsh.model.add_physical_group(2, bl_top_stags, tag=9998, name=name+'BoundaryLayerSurface')
             gmsh.model.add_physical_group(3, bl_vtags, tag=9999, name=name+'BoundaryLayerVolume')
 
-        # Add meshing constraint on TE and LE
-        for i in range(n_airf):
-            gmsh.model.mesh.set_size([(0, ptags[i][0]), (0, ptags[i][-1])], mesh_cfg['wing_sizes'][name][i][0])
-            gmsh.model.mesh.set_size([(0, ptags[i][le_idx[i]])], mesh_cfg['wing_sizes'][name][i][1])
-        if domain_cfg['type'] == 'rans':
+        # Transfinite meshing constraints (RANS only)
+        if 'num_cell_chord' in mesh_cfg['wing_sizes'][name]:
+            if domain_cfg['type'] != 'rans':
+                raise GmshCFDError('transfinite surface meshes are supported only for RANS (rans domain type)!\n', self)
+            # Suction and pressure side curves
+            for tags in airf_ctags:
+                for j in range(2):
+                    gmsh.model.geo.mesh.set_transfinite_curve(tags[j], mesh_cfg['wing_sizes'][name]['num_cell_chord'] + 1, meshType='Bump', coef=mesh_cfg['wing_sizes'][name]['prog_chord'])
+            for i in range(n_airf - 1):
+                for j in range(3):
+                    gmsh.model.geo.mesh.set_transfinite_curve(plan_ctags[i][j], mesh_cfg['wing_sizes'][name]['num_cell_span'][i] + 1)
+            # Trailing edge curves
+            for i in range(n_airf - 1):
+                gmsh.model.geo.mesh.set_transfinite_curve(te_ctags[i], mesh_cfg['wing_sizes'][name]['num_cell_span'][i] + 1)
             for i in range(n_airf):
-                gmsh.model.mesh.set_size([(0, te_ptags[i])], mesh_cfg['wing_sizes'][name][i][0])
-            gmsh.model.mesh.set_size([(0, tip_ptags[-1])], mesh_cfg['wing_sizes'][name][i][0])
+                for j in range(2):
+                    gmsh.model.geo.mesh.set_transfinite_curve(airf_te_ctags[i][j], 2)
+            # Tip curves
+            gmsh.model.geo.mesh.set_transfinite_curve(tip_ctag, mesh_cfg['wing_sizes'][name]['num_cell_chord'] + 1, meshType='Bump', coef=mesh_cfg['wing_sizes'][name]['prog_chord'])
+            gmsh.model.geo.mesh.set_transfinite_curve(tip_le_ctag, 2)
+            # Surfaces
+            for tag in stags:
+                gmsh.model.geo.mesh.set_transfinite_surface(tag)
+                gmsh.model.geo.mesh.set_recombine(2, tag)
+        # Unstructured meshing constraints
+        else:
+            # Leading and trailing edges
+            for i in range(n_airf):
+                gmsh.model.mesh.set_size([(0, ptags[i][0]), (0, ptags[i][-1])], mesh_cfg['wing_sizes'][name]['te'][i])
+                gmsh.model.mesh.set_size([(0, ptags[i][le_idx[i]])], mesh_cfg['wing_sizes'][name]['le'][i])
+            # Tip and trailing edge
+            if domain_cfg['type'] == 'rans':
+                for i in range(n_airf):
+                    gmsh.model.mesh.set_size([(0, te_ptags[i])], mesh_cfg['wing_sizes'][name]['te'][i])
+                gmsh.model.mesh.set_size([(0, tip_ptags[-1])], mesh_cfg['wing_sizes'][name]['te'][i])
 
         # Generate tag dictionary
         if domain_cfg['type'] == 'rans':

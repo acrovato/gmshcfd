@@ -56,8 +56,14 @@ def build_cfg():
         },
         'mesh': {
             'wing_sizes': {
-                'wing': [[s, s] for s in wsizes],
-                'tail': [[s, s] for s in tsizes]
+                'wing': {
+                    'te': [s for s in wsizes],
+                    'le': [s for s in wsizes]
+                },
+                'tail': {
+                    'te': [s for s in tsizes],
+                    'le': [s for s in tsizes]
+                }
             },
             'domain_size': ff_size
         }
