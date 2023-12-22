@@ -1,0 +1,23 @@
+name: Continuous integration
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    container:
+      image: onelab/ubuntu20.04
+      options: --user root
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+    - name: Install
+      run: |
+        python3 -m pip install .
+    - name: Test
+      run: |
+        mkdir WORKSPACE && cd WORKSPACE
+        cp -r ../examples/. .
+        for f in ./*.py; do python3 "$f"; done
