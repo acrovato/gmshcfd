@@ -25,11 +25,11 @@ setup(
     version=__version__,
     description='GmshCFD is a tool based on Gmsh for creating CFD meshes around lifting surfaces suitable for external aerodynamic analysis.',
     keywords='Gmsh CFD aerodynamic mesh Python',
-    author='',
+    author='Adrien Crovato',
     author_email='',
     url='https://github.com/acrovato/gmshcfd',
     license='GNU General Public License 3.0',
     packages=find_packages(include=['gmshcfd*']),
-    install_requires=['numpy>=1.22', 'gmsh>=4.11'],
+    install_requires=['numpy>=1.22', 'gmsh==4.10.5'],
     classifiers=['Operating System :: OS Independent', 'Programming Language :: Python'],
 )
