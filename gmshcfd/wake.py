@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from .errors import GmshCFDError
 import gmsh
 
 class Wake:
@@ -26,8 +27,8 @@ class Wake:
         tag of trailing edge curves
     name: string
         name of the wake
-    domain_length: float
-        length of the domain
+    domain_cfg: dict
+        parameters to configure domain
     mesh_size: float
         mesh size at farfield boundary
 
@@ -35,31 +36,49 @@ class Wake:
     tags: dict
         gmsh tags of remarkable curves/surfaces of the lifting surface
     """
-    def __init__(self, pte_ids, cte_ids, name, domain_length, mesh_size):
-        # Create Gmsh box domain model
-        self.__create_model(pte_ids, cte_ids, name, domain_length, mesh_size)
+    def __init__(self, pte_ids, cte_ids, name, domain_cfg, mesh_size):
+        # Create Gmsh wake model
+        wake_length = domain_cfg['length']
+        merge = domain_cfg.get('merge_wake')
+        if merge not in [None, 'all', 'last']:
+            raise GmshCFDError('merge must be either None, "all" or "last"!\n', self)
+        self.__create_model(pte_ids, cte_ids, name, wake_length, merge, mesh_size)
 
-    def __create_model(self, pte_ids, cte_ids, name, domain_length, mesh_size):
+    def __create_model(self, pte_ids, cte_ids, name, wake_length, merge, mesh_size):
         """Create wake points, curves and surfaces in Gmsh model
         """
+        # Retain points and curves needed to build wake
+        if merge == 'all':
+            pte_tags = [list(pte_ids.keys())[0], list(pte_ids.keys())[-1]]
+            pte_coords = [list(pte_ids.values())[0], list(pte_ids.values())[-1]]
+            cte_tags = [[-i for i in cte_ids]]
+        elif merge == 'last':
+            pte_tags = [*list(pte_ids.keys())[:-2], list(pte_ids.keys())[-1]]
+            pte_coords = [*list(pte_ids.values())[:-2], list(pte_ids.values())[-1]]
+            cte_tags = [*[[-i] for i in cte_ids[:-2]], [-cte_ids[-2], -cte_ids[-1]]]
+        else:
+            pte_tags = list(pte_ids.keys())
+            pte_coords = list(pte_ids.values())
+            cte_tags = [[-i] for i in cte_ids]
+
         # Create points
         ptags = []
-        for te_coord in pte_ids.values():
-            ptags.append(gmsh.model.geo.add_point(domain_length, te_coord[1], te_coord[2]))
+        for te_coord in pte_coords:
+            ptags.append(gmsh.model.geo.add_point(wake_length, te_coord[1], te_coord[2]))
 
         # Create curves
         shed_ctags = []
-        for i, te_tag in enumerate(pte_ids.keys()):
+        for i, te_tag in enumerate(pte_tags):
             shed_ctags.append(gmsh.model.geo.add_line(te_tag, ptags[i]))
         trail_ctags = []
         for i in range(len(ptags) - 1):
-            trail_ctags.append(gmsh.model.geo.add_line(ptags[i], ptags[i+1]))    
+            trail_ctags.append(gmsh.model.geo.add_line(ptags[i], ptags[i+1]))
 
         # Create surfaces
         stags = []
-        for i in range(len(ptags) - 1):
-            cltag = gmsh.model.geo.add_curve_loop([trail_ctags[i], -shed_ctags[i+1], -cte_ids[i], shed_ctags[i]])
-            stags.append(gmsh.model.geo.add_surface_filling([cltag]))
+        for i in range(len(cte_tags)):
+            cltag = gmsh.model.geo.add_curve_loop([trail_ctags[i], -shed_ctags[i+1], *cte_tags[i], shed_ctags[i]])
+            stags.append(gmsh.model.geo.add_plane_surface([cltag]))
 
         # Add physical groups
         gmsh.model.geo.synchronize()

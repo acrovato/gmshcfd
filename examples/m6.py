@@ -26,6 +26,7 @@ def build_cfg():
     airf_path =  [apath, apath]
     # Compute wing leading edge coordinates and chord lengths
     le_coords, chords = gmshcfd.utils.compute_wing_cfg([1.196], [0.56], [30], [0], 0.8059)
+    le_coords, chords, incidences, airf_path = gmshcfd.utils.add_section(le_coords, chords, [0., 0.], airf_path, y_sec=0.99)
     # Compute mesh sizes
     sizes = [c / 100 for c in chords]
     ff_size = gmshcfd.utils.compute_ff_mesh_size(sizes[0], 20 * chords[0], 1.2)
@@ -37,12 +38,13 @@ def build_cfg():
                 'le_offsets': le_coords,
                 'airfoils': airf_path,
                 'chords': chords,
-                'incidences': [0., 0.]
+                'incidences': incidences
             }
         },
         'domain': {
             'type': 'potential',
-            'length': 20 * chords[0]
+            'length': 20 * chords[0],
+            'merge_wake': 'last'
         },
         'mesh': {
             'wing_sizes': {
