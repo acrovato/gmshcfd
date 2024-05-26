@@ -123,7 +123,7 @@ class Wing:
         plan_ctags = []
         for i in range(n_airf - 1):
             ctag_te = gmsh.model.geo.add_line(ptags[i][0], ptags[i+1][0])
-            ctag_le = gmsh.model.geo.add_line(ptags[i][le_idx[i]], ptags[i+1][le_idx[i]])
+            ctag_le = gmsh.model.geo.add_line(ptags[i][le_idx[i]], ptags[i+1][le_idx[i+1]])
             plan_ctags.append([ctag_te, ctag_le])
 
         # Add planforms
@@ -162,7 +162,7 @@ class Wing:
             cte_ids = [] # TE curves
             for i in range(n_airf - 1):
                 cte_ids.append(plan_ctags[i][0])
-            self.wake = Wake(pte_ids, cte_ids, name+'Wake', domain_cfg['length'], mesh_cfg['domain_size'])
+            self.wake = Wake(pte_ids, cte_ids, name+'Wake', domain_cfg, mesh_cfg['domain_size'])
 
     def __create_model_open(self, n_airf, coords, le_idx, tp_idx, name, domain_cfg, mesh_cfg):
         """Create points, curves and surfaces for wing with blunt trailing edge in Gmsh model
@@ -204,7 +204,7 @@ class Wing:
         plan_ctags = []
         for i in range(n_airf - 1):
             ctag_teu = gmsh.model.geo.add_line(ptags[i][0], ptags[i+1][0])
-            ctag_le = gmsh.model.geo.add_line(ptags[i][le_idx[i]], ptags[i+1][le_idx[i]])
+            ctag_le = gmsh.model.geo.add_line(ptags[i][le_idx[i]], ptags[i+1][le_idx[i+1]])
             ctag_tel = gmsh.model.geo.add_line(ptags[i][-1], ptags[i+1][-1])
             plan_ctags.append([ctag_teu, ctag_le, ctag_tel])
         # Add trailing edge curves and tip spline
