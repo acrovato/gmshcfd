@@ -224,7 +224,7 @@ def sharpen_te(fpath, n_change=10, gui=False):
         plt.ylabel('y')
         plt.show()
 
-def compute_le_sweep(sweep, chord, span, taper, chord_frac=0.25)
+def compute_le_sweep(sweep, chord, span, taper, chord_frac=0.25):
     """Compute the leading edge sweep angle from the sweep angle at another chord fraction
 
     Parameters:
