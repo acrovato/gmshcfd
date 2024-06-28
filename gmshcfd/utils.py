@@ -223,3 +223,20 @@ def sharpen_te(fpath, n_change=10, gui=False):
         plt.xlabel('x')
         plt.ylabel('y')
         plt.show()
+
+def compute_le_sweep(sweep, chord, span, taper, chord_frac=0.25)
+    """Compute the leading edge sweep angle from the sweep angle at another chord fraction
+
+    Parameters:
+    sweep: float
+        sweep angle at given chord fraction
+    chord: float
+        chord length
+    span: float
+        semi-span length
+    taper: float
+        taper ratio
+    chord_frac: float
+        fraction of the chord at which sweep is defined (between 0 and 1)
+    """
+    return np.arctan(np.tan(sweep) + 0.25 * chord / span * (1 - taper))
