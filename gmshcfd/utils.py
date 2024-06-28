@@ -239,4 +239,4 @@ def compute_le_sweep(sweep, chord, span, taper, chord_frac=0.25)
     chord_frac: float
         fraction of the chord at which sweep is defined (between 0 and 1)
     """
-    return np.arctan(np.tan(sweep) + 0.25 * chord / span * (1 - taper))
+    return np.arctan(np.tan(sweep) + chord_frac * chord / span * (1 - taper))
