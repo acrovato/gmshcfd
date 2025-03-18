@@ -98,7 +98,7 @@ class Wing:
             coords[i][:, [1, 2]] = np.fliplr(coords[i][:, [1, 2]])
 
         # Get the trailing edge z_coordinate of the airfoil on the symmetry plane
-        self.height = coords[0][0, 0]
+        self.height = coords[0][0, 2]
 
         return is_closed, n_airf, coords, le_idx, tp_idx
 

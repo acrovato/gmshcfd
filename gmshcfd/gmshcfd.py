@@ -83,6 +83,10 @@ class GmshCFD:
         """
         algos_2d = {'delaunay': 5, 'frontal-delaunay': 6}
         algos_3d = {'delaunay': 1, 'hxt': 10}
+        gmsh.option.set_number('Geometry.Tolerance', 1e-10)
+        gmsh.option.set_number('Geometry.MatchMeshTolerance', 1e-8)
+        gmsh.option.set_number('Mesh.ToleranceReferenceElement', 1e-8)
+        gmsh.option.set_number('Mesh.AngleToleranceFacetOverlap', 1e-2)
         gmsh.option.set_number('Mesh.Algorithm', algos_2d[algo_2d])
         gmsh.option.set_number('Mesh.Algorithm3D', algos_3d[algo_3d])
         gmsh.option.set_number('Mesh.Optimize', 1)
