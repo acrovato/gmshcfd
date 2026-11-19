@@ -36,8 +36,7 @@ def build_cfg():
                  [0.52041, 1.0, 0.0]]
     chords = [0.3606, 0.31765, 0.29071, 0.25806, 0.22029, 0.18235, 0.15534, 0.14445]
     # Compute mesh sizes
-    sizes = [c / 100 for c in chords]
-    ff_size = utils.compute_ff_mesh_size(sizes[0], 50 * chords[0], 1.2)
+    ff_size = utils.compute_ff_mesh_size(chords[0] / 100, 50 * chords[0], 1.2)
     # Build cfg
     cfg = {
         'wings': {
@@ -56,14 +55,11 @@ def build_cfg():
         'mesh': {
             'wing_sizes': {
                 'wing': {
-                    'te': [s for s in sizes],
-                    'le': [s for s in sizes]
+                    'num_cell_chord': 75,
+                    'num_cell_span': [25, 15, 20, 20, 20, 15, 5],
+                    'prog_chord': 0.25,
+                    'recombine': False
                 }
-                #'wing': {
-                #    'num_cell_chord': 125,
-                #    'num_cell_span': [50, 30, 40, 40, 40, 30, 10],
-                #    'prog_chord': 0.25
-                #}
             },
             'boundary_layer': {
                 'wing': {

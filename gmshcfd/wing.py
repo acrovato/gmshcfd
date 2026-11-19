@@ -280,10 +280,10 @@ class Wing:
                         bl_sym_stags.append(bl[i + 4])
                         bl_sym_stags.append(bl[2 * (n_airf - 1) * 6 + i + 4])
             # Get the bounding curves on symmetry plane, gives 2 closed countours (inner and outer), so remove inner
-            bl_sym_ctags = [c[1] for c in gmsh.model.getBoundary(bl_sym_stags)]
+            bl_sym_ctags = [c[1] for c in gmsh.model.getBoundary(bl_sym_stags, oriented=False)]
             for i in range(2):
-                bl_sym_ctags.remove(-airf_ctags[0][i])
-                bl_sym_ctags.remove(-airf_te_ctags[0][i])
+                bl_sym_ctags.remove(airf_ctags[0][i])
+                bl_sym_ctags.remove(airf_te_ctags[0][i])
 
         # Add physical groups
         gmsh.model.geo.synchronize()
@@ -315,7 +315,8 @@ class Wing:
             # Surfaces
             for tag in stags:
                 gmsh.model.geo.mesh.set_transfinite_surface(tag)
-                gmsh.model.geo.mesh.set_recombine(2, tag)
+                if mesh_cfg['wing_sizes'][name]['recombine']:
+                    gmsh.model.geo.mesh.set_recombine(2, tag)
         # Unstructured meshing constraints
         else:
             # Leading and trailing edges
