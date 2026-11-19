@@ -1,0 +1,41 @@
+# pyCFDutils
+# Copyright (C) 2020 Adrien Crovato
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+[project]
+name = 'gmshcfd'
+description = 'GmshCFD - a tool based on Gmsh for creating CFD meshes around lifting surfaces suitable for external aerodynamic analysis.'
+version = '1.2.0'
+authors = [
+    { name = 'Adrien Crovato'}
+]
+keywords = ['Gmsh', 'CFD', 'aerodynamic', 'mesh', 'Python']
+readme = 'README.md'
+license = 'GPL-3.0-only'
+license-files = ['LICENSE']
+requires-python = '>= 3.10'
+dependencies = [
+    'numpy>=1.22',
+    'scipy>=1.10',
+    'gmsh>=4.10.5'
+]
+
+[project.scripts]
+gmshcfd-run = 'gmshcfd.cli:main'
+
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-dir]
+'gmshcfd' = 'gmshcfd'

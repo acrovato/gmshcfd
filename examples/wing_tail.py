@@ -17,7 +17,7 @@
 # Generic wing/tail
 # Adrien Crovato
 
-import gmshcfd
+from gmshcfd import GmshCFD, utils
 
 def build_cfg():
     # Build path
@@ -26,12 +26,12 @@ def build_cfg():
     tairf_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'airfoils', 'naca_0012.dat'))
     airf_path =  [[wairf_path, wairf_path, wairf_path], [tairf_path, tairf_path]]
     # Compute wing and tail leading edge coordinates and chord lengths
-    wle_coords, wchords = gmshcfd.utils.compute_wing_cfg([0.5, 3.0], [0.82, 0.35], [20., 20.], [1., 3.], 1.0)
-    tle_coords, tchords = gmshcfd.utils.compute_wing_cfg([1.0], [0.3], [25.], [2.], 0.5)
+    wle_coords, wchords = utils.compute_wing_cfg([0.5, 3.0], [0.82, 0.35], [20., 20.], [1., 3.], 1.0)
+    tle_coords, tchords = utils.compute_wing_cfg([1.0], [0.3], [25.], [2.], 0.5)
     # Compute mesh sizes
     wsizes = [c / 100 for c in wchords]
     tsizes = [c / 100 for c in tchords]
-    ff_size = gmshcfd.utils.compute_ff_mesh_size(wsizes[0], 50 * wchords[0], 1.2)
+    ff_size = utils.compute_ff_mesh_size(wsizes[0], 50 * wchords[0], 1.2)
     # Build cfg
     cfg = {
         'wings': {
@@ -72,7 +72,7 @@ def build_cfg():
 
 def main():
     # Generate wing and domain geometry
-    cfd = gmshcfd.GmshCFD('wing_tail', build_cfg())
+    cfd = GmshCFD('wing_tail', build_cfg())
     cfd.generate_geometry()
 
     # Generate mesh

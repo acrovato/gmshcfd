@@ -17,7 +17,7 @@
 # ONERA M6 wing
 # Adrien Crovato
 
-import gmshcfd
+from gmshcfd import GmshCFD, utils
 
 def build_cfg():
     # Build path
@@ -25,11 +25,11 @@ def build_cfg():
     apath = os.path.abspath(os.path.join(os.path.dirname(__file__), 'airfoils', 'onera_m6.dat'))
     airf_path =  [apath, apath]
     # Compute wing leading edge coordinates and chord lengths
-    le_coords, chords = gmshcfd.utils.compute_wing_cfg([1.196], [0.56], [30], [0], 0.8059)
-    le_coords, chords, incidences, airf_path = gmshcfd.utils.add_section(le_coords, chords, [0., 0.], airf_path, y_sec=0.99)
+    le_coords, chords = utils.compute_wing_cfg([1.196], [0.56], [30], [0], 0.8059)
+    le_coords, chords, incidences, airf_path = utils.add_section(le_coords, chords, [0., 0.], airf_path, y_sec=0.99)
     # Compute mesh sizes
     sizes = [c / 100 for c in chords]
-    ff_size = gmshcfd.utils.compute_ff_mesh_size(sizes[0], 20 * chords[0], 1.2)
+    ff_size = utils.compute_ff_mesh_size(sizes[0], 20 * chords[0], 1.2)
     # Build cfg
     cfg = {
         'wings': {
@@ -60,7 +60,7 @@ def build_cfg():
 
 def main():
     # Generate wing and domain geometry
-    cfd = gmshcfd.GmshCFD('m6', build_cfg())
+    cfd = GmshCFD('m6', build_cfg())
     cfd.generate_geometry()
 
     # Generate mesh

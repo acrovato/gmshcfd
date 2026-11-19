@@ -17,7 +17,7 @@
 # LANN wing
 # Adrien Crovato
 
-import gmshcfd
+from gmshcfd import GmshCFD, utils
 
 def build_cfg():
     # Build path
@@ -37,7 +37,7 @@ def build_cfg():
     chords = [0.3606, 0.31765, 0.29071, 0.25806, 0.22029, 0.18235, 0.15534, 0.14445]
     # Compute mesh sizes
     sizes = [c / 100 for c in chords]
-    ff_size = gmshcfd.utils.compute_ff_mesh_size(sizes[0], 50 * chords[0], 1.2)
+    ff_size = utils.compute_ff_mesh_size(sizes[0], 50 * chords[0], 1.2)
     # Build cfg
     cfg = {
         'wings': {
@@ -80,7 +80,7 @@ def build_cfg():
 
 def main():
     # Generate wing and domain geometry
-    cfd = gmshcfd.GmshCFD('lann', build_cfg())
+    cfd = GmshCFD('lann', build_cfg())
     cfd.generate_geometry()
 
     # Generate mesh
