@@ -6,18 +6,22 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     container:
-      image: onelab/ubuntu20.04
+      image: onelab/ubuntu24.04
       options: --user root
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
+    - name: Install system dependencies
+      run: |
+        apt update
+        apt install -y python3-venv
     - name: Install
       run: |
-        python3 -m pip install .
+        python3 -m venv .venv
+        .venv/bin/python3 -m pip install .
     - name: Test
       run: |
-        mkdir WORKSPACE && cd WORKSPACE
-        cp -r ../examples/. .
-        for f in ./*.py; do python3 "$f"; done
+        . .venv/bin/activate
+        for f in examples/*.py; do gmshcfd-run "$f"; done
