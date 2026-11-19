@@ -23,5 +23,5 @@ jobs:
         .venv/bin/python3 -m pip install .
     - name: Test
       run: |
-        source .venv/bin/activate
+        . .venv/bin/activate
         for f in examples/*.py; do gmshcfd-run "$f"; done
