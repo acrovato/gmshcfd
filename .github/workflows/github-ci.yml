@@ -13,11 +13,14 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v7
+    - name: Install system dependencies
+      run: |
+        apt update
+        apt install -y python3-venv
     - name: Install
       run: |
         python3 -m venv .venv
-        source .venv/bin/activate
-        python3 -m pip install .
+        .venv/bin/python3 -m pip install .
     - name: Test
       run: |
         source .venv/bin/activate
